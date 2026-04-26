@@ -1,12 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-playfair: 'Playfair Display', Georgia, serif;
-  --font-dm-sans: 'DM Sans', system-ui, sans-serif;
+  --font-cormorant: 'Cormorant Garamond', Georgia, serif;
+  --font-jost: 'Jost', system-ui, sans-serif;
+
+  /* Palette */
+  --linen:       #F5F0E8;
+  --parchment:   #EDE6D8;
+  --warm-white:  #FAF7F2;
+  --ink:         #1A1714;
+  --ink-mid:     #5C5549;
+  --ink-faint:   #9C9285;
+  --sage:        #6B8F71;
+  --sage-light:  #E8EFE9;
+  --sage-dark:   #3D5C42;
+  --terracotta:  #B5623A;
+  --terra-light: #F5EAE3;
+  --gold:        #A8843E;
+  --border:      #DDD6C8;
+  --border-dark: #C8BEB0;
 }
 
 html, body, #__next {
@@ -16,17 +32,27 @@ html, body, #__next {
 }
 
 body {
-  font-family: var(--font-dm-sans);
-  background-color: #FAF8F3;
-  color: #1C1A15;
+  font-family: var(--font-jost);
+  background-color: var(--linen);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
+/* Linen texture overlay on the cream bg */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #D0C8BC; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 10px; }
 
 @layer utilities {
-  .font-display { font-family: var(--font-playfair), Georgia, serif; }
-  .font-body { font-family: var(--font-dm-sans), system-ui, sans-serif; }
+  .font-display { font-family: var(--font-cormorant), Georgia, serif; }
+  .font-body    { font-family: var(--font-jost), system-ui, sans-serif; }
 }

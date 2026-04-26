@@ -7,13 +7,18 @@ import AddRecipeModal from '../modals/AddRecipeModal'
 import { Recipe } from '@/store'
 
 const MOODS = [
-  { emoji: '🌿', name: 'Something light & fresh', desc: 'Salads, grain bowls, light soups', filter: 'vegetarian' },
-  { emoji: '🔥', name: 'Quick & satisfying', desc: 'Under 20 minutes', filter: 'quick' },
-  { emoji: '🥩', name: 'Hearty protein meal', desc: 'Chicken, beef, or seafood', filter: 'protein' },
-  { emoji: '🌱', name: 'Plant-based tonight', desc: 'Vegan or vegetarian', filter: 'vegan' },
-  { emoji: '🍳', name: 'Breakfast for dinner', desc: 'Eggs, oats, morning favorites', filter: 'breakfast' },
-  { emoji: '🌍', name: 'Global flavors', desc: 'Surprise me with something new', filter: 'all' },
+  { name: 'Light & fresh',       desc: 'Salads, grain bowls, broth-based soups', filter: 'vegetarian' },
+  { name: 'Quick & satisfying',  desc: 'Ready in under 20 minutes',               filter: 'quick'      },
+  { name: 'Hearty protein',      desc: 'Chicken, beef, seafood',                  filter: 'protein'    },
+  { name: 'Plant-based',         desc: 'Vegan or vegetarian',                     filter: 'vegan'      },
+  { name: 'Breakfast for dinner',desc: 'Eggs, oats, morning classics',            filter: 'breakfast'  },
+  { name: 'Something new',       desc: 'Explore the full collection',             filter: 'all'        },
 ]
+
+const sec: React.CSSProperties = {
+  fontSize: 10, letterSpacing: '2.5px', textTransform: 'uppercase',
+  color: '#9C9285', marginBottom: 14, fontFamily: 'var(--font-jost)',
+}
 
 export default function InspirePage({ toast }: { toast: (m: string) => void }) {
   const { recipes, leftovers, grocery, pantry, setPage, setRecipeFilter } = useStore()
@@ -21,57 +26,53 @@ export default function InspirePage({ toast }: { toast: (m: string) => void }) {
   const [showAdd, setShowAdd] = useState(false)
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
-  function pickMood(filter: string) {
-    setRecipeFilter(filter)
-    setPage('recipes')
-  }
-
   return (
-    <div className="p-8 pb-16">
+    <div style={{ padding: '36px 40px 80px' }}>
       {/* Header */}
-      <div className="flex justify-between items-start mb-5">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
         <div>
-          <h1 className="font-display text-[28px] font-normal">What's cooking?</h1>
-          <p className="text-[#6B6357] text-[13px] mt-1">{today} — get inspired for your next meal</p>
+          <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 36, fontWeight: 400, margin: 0, color: '#1A1714', letterSpacing: 0.3 }}>
+            What shall we cook?
+          </h1>
+          <p style={{ color: '#9C9285', fontSize: 13, marginTop: 4, fontFamily: 'var(--font-jost)' }}>{today}</p>
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-1.5 bg-[#7A9E7E] text-white text-[13px] font-medium px-4 py-2 rounded-[8px] hover:bg-[#4A6B4E] transition-colors"
+          style={{ padding: '10px 20px', background: '#1A1714', color: '#F5F0E8', border: 'none', borderRadius: 8, fontSize: 11, letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'var(--font-jost)', cursor: 'pointer' }}
         >
-          + New Recipe
+          New Recipe
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="flex gap-3 mb-8 flex-wrap">
+      {/* Stats row */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 40, flexWrap: 'wrap' }}>
         {[
-          { num: recipes.length, label: 'saved recipes' },
-          { num: leftovers.length, label: 'leftovers' },
-          { num: grocery.filter((g) => !g.checked).length, label: 'items to buy' },
-          { num: pantry.filter((p) => p.status === 'bad').length, label: 'expiring soon' },
+          { num: recipes.length,                              label: 'Recipes'        },
+          { num: leftovers.length,                            label: 'Leftovers'      },
+          { num: grocery.filter(g => !g.checked).length,     label: 'To buy'         },
+          { num: pantry.filter(p => p.status === 'bad').length, label: 'Expiring'    },
         ].map(({ num, label }) => (
-          <div key={label} className="flex items-center gap-1.5 bg-[#FFFEF9] border border-[#E8E3DB] rounded-full px-3.5 py-1.5">
-            <span className="font-medium text-[15px]">{num}</span>
-            <span className="text-[11px] text-[#6B6357]">{label}</span>
+          <div key={label} style={{ background: '#FAF7F2', border: '1px solid #DDD6C8', borderRadius: 40, padding: '7px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: 20, color: '#1A1714' }}>{num}</span>
+            <span style={{ fontSize: 11, color: '#9C9285', letterSpacing: '0.5px' }}>{label}</span>
           </div>
         ))}
       </div>
 
-      {/* Leftovers alert */}
+      {/* Leftovers */}
       {leftovers.length > 0 && (
-        <div className="mb-8">
-          <div className="text-[11px] font-medium text-[#A89E93] uppercase tracking-[1.5px] mb-3.5">Use up leftovers first</div>
-          <div className="flex gap-2.5 flex-wrap">
-            {leftovers.map((l) => (
-              <div key={l.id} className="flex items-center gap-3 bg-[#FFFEF9] border border-[#E8E3DB] rounded-[12px] px-4 py-3 flex-1 min-w-[200px]">
-                <span className="text-3xl">{l.emoji}</span>
-                <div className="flex-1">
-                  <div className="font-medium text-[14px]">{l.name}</div>
-                  <div className="text-[11px] text-[#6B6357]">{l.date}</div>
+        <div style={{ marginBottom: 40 }}>
+          <div style={sec}>Use up first</div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {leftovers.map(l => (
+              <div key={l.id} style={{ flex: 1, minWidth: 200, background: '#FAF7F2', border: '1px solid #DDD6C8', borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 17, color: '#1A1714' }}>{l.name}</div>
+                  <div style={{ fontSize: 11, color: '#9C9285', marginTop: 2 }}>{l.date}</div>
                 </div>
-                <span className="text-[11px] bg-[#EDF3EE] text-[#4A6B4E] px-2 py-0.5 rounded-full">
+                <div style={{ fontSize: 11, background: '#E8EFE9', color: '#3D5C42', padding: '3px 10px', borderRadius: 20 }}>
                   {l.servings} serving{l.servings !== 1 ? 's' : ''}
-                </span>
+                </div>
               </div>
             ))}
           </div>
@@ -79,18 +80,28 @@ export default function InspirePage({ toast }: { toast: (m: string) => void }) {
       )}
 
       {/* Mood grid */}
-      <div className="mb-8">
-        <div className="text-[11px] font-medium text-[#A89E93] uppercase tracking-[1.5px] mb-3.5">What are you in the mood for?</div>
-        <div className="grid grid-cols-3 gap-4">
-          {MOODS.map((m) => (
+      <div style={{ marginBottom: 40 }}>
+        <div style={sec}>What are you in the mood for?</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          {MOODS.map(m => (
             <div
               key={m.filter}
-              onClick={() => pickMood(m.filter)}
-              className="bg-[#FFFEF9] border border-[#E8E3DB] rounded-[18px] p-5 cursor-pointer text-center hover:border-[#7A9E7E] hover:shadow-card transition-all"
+              onClick={() => { setRecipeFilter(m.filter); setPage('recipes') }}
+              style={{
+                background: '#FAF7F2', border: '1px solid #DDD6C8', borderRadius: 14,
+                padding: '20px 22px', cursor: 'pointer', transition: 'all 0.18s',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLDivElement).style.borderColor = '#6B8F71'
+                ;(e.currentTarget as HTMLDivElement).style.background = '#F0F5F1'
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLDivElement).style.borderColor = '#DDD6C8'
+                ;(e.currentTarget as HTMLDivElement).style.background = '#FAF7F2'
+              }}
             >
-              <div className="text-4xl mb-2.5">{m.emoji}</div>
-              <div className="font-display text-[16px] mb-1">{m.name}</div>
-              <div className="text-[12px] text-[#6B6357]">{m.desc}</div>
+              <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 19, color: '#1A1714', marginBottom: 5 }}>{m.name}</div>
+              <div style={{ fontSize: 12, color: '#9C9285' }}>{m.desc}</div>
             </div>
           ))}
         </div>
@@ -98,20 +109,18 @@ export default function InspirePage({ toast }: { toast: (m: string) => void }) {
 
       {/* Recent recipes */}
       <div>
-        <div className="flex justify-between items-center mb-3.5">
-          <div className="text-[11px] font-medium text-[#A89E93] uppercase tracking-[1.5px]">Recent recipes</div>
-          <button onClick={() => setPage('recipes')} className="text-[12px] text-[#4A6B4E] hover:underline">View all →</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div style={sec}>Recent recipes</div>
+          <button onClick={() => setPage('recipes')} style={{ fontSize: 11, color: '#6B8F71', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.5px' }}>View all</button>
         </div>
-        <div className="grid grid-cols-4 gap-4">
-          {recipes.slice(0, 4).map((r) => (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 16 }}>
+          {recipes.slice(0, 4).map(r => (
             <RecipeCard key={r.id} recipe={r} onClick={() => setDetailRecipe(r)} />
           ))}
         </div>
       </div>
 
-      {detailRecipe && (
-        <RecipeDetailModal recipe={detailRecipe} onClose={() => setDetailRecipe(null)} toast={toast} />
-      )}
+      {detailRecipe && <RecipeDetailModal recipe={detailRecipe} onClose={() => setDetailRecipe(null)} toast={toast} />}
       {showAdd && <AddRecipeModal onClose={() => setShowAdd(false)} toast={toast} />}
     </div>
   )

@@ -13,55 +13,71 @@ export default function PlannerPage({ toast }: { toast: (m: string) => void }) {
 
   function handleAddWeek() {
     const count = addWeekToGrocery()
-    toast(`${count} ingredients added to grocery list`)
+    toast(`${count} ingredient${count !== 1 ? 's' : ''} added to grocery list`)
   }
 
   return (
-    <div className="p-8 pb-16">
-      <div className="flex justify-between items-center mb-6">
+    <div style={{ padding: '36px 40px 80px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
         <div>
-          <h1 className="font-display text-[28px] font-normal">Week Planner</h1>
-          <p className="text-[#6B6357] text-[13px] mt-1">Plan meals, track what's on the menu</p>
+          <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 36, fontWeight: 400, margin: 0 }}>Week Planner</h1>
+          <p style={{ color: '#9C9285', fontSize: 13, marginTop: 4, fontFamily: 'var(--font-jost)' }}>Plan meals, track what's on the menu</p>
         </div>
         <button
           onClick={handleAddWeek}
-          className="flex items-center gap-1.5 bg-transparent border border-[#D0C8BC] text-[#6B6357] text-[12px] font-medium px-3 py-1.5 rounded-[8px] hover:bg-[#E8E3DB] hover:text-[#1C1A15] transition-colors"
+          style={{ padding: '10px 20px', background: 'transparent', border: '1px solid #DDD6C8', color: '#5C5549', borderRadius: 8, fontSize: 11, letterSpacing: '1.2px', textTransform: 'uppercase', fontFamily: 'var(--font-jost)', cursor: 'pointer' }}
         >
-          📋 Add week to grocery list
+          Add week to grocery list
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-2.5">
-        {DAYS.map((day) => {
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10 }}>
+        {DAYS.map(day => {
           const isToday = day === today
           return (
             <div
               key={day}
-              className={`bg-[#FFFEF9] border rounded-[12px] p-3 min-h-[160px] ${
-                isToday ? 'border-[#7A9E7E]' : 'border-[#E8E3DB]'
-              }`}
+              style={{
+                background: '#FAF7F2',
+                border: `1px solid ${isToday ? '#6B8F71' : '#DDD6C8'}`,
+                borderRadius: 12,
+                padding: 12,
+                minHeight: 170,
+              }}
             >
-              <div className={`text-[10px] font-medium uppercase tracking-[1px] mb-2.5 ${isToday ? 'text-[#4A6B4E]' : 'text-[#A89E93]'}`}>
-                {day}{isToday ? ' · today' : ''}
+              <div style={{ fontSize: 10, letterSpacing: '2px', textTransform: 'uppercase', color: isToday ? '#3D5C42' : '#9C9285', marginBottom: 10, fontFamily: 'var(--font-jost)' }}>
+                {day}{isToday ? ' ·' : ''}
               </div>
-              {MEALS.map((meal) => {
+              {MEALS.map(meal => {
                 const recipeId = weekPlan[day][meal]
-                const recipe = recipeId ? recipes.find((r) => r.id === recipeId) : null
+                const recipe = recipeId ? recipes.find(r => r.id === recipeId) : null
                 return recipe ? (
                   <div
                     key={meal}
                     onClick={() => removeMeal(day, meal)}
-                    className="p-1.5 rounded-[6px] text-[11px] mb-1.5 border border-[#E8E3DB] bg-[#FAF8F3] cursor-pointer hover:border-red-200 hover:bg-red-50 transition-colors"
                     title="Click to remove"
+                    style={{
+                      padding: '7px 9px', borderRadius: 6, fontSize: 11, marginBottom: 6,
+                      border: '1px solid #E8E3DB', background: '#F5F0E8', cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#B5623A'; (e.currentTarget as HTMLDivElement).style.background = '#F5EAE3' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E3DB'; (e.currentTarget as HTMLDivElement).style.background = '#F5F0E8' }}
                   >
-                    <div className="text-[9px] uppercase tracking-[1px] text-[#A89E93] mb-0.5">{meal}</div>
-                    <div className="text-[11px] text-[#1C1A15] leading-snug">{recipe.emoji} {recipe.name}</div>
+                    <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '1px', color: '#9C9285', marginBottom: 2 }}>{meal}</div>
+                    <div style={{ fontSize: 11, color: '#1A1714', lineHeight: 1.3, fontFamily: 'var(--font-jost)' }}>{recipe.name}</div>
                   </div>
                 ) : (
                   <div
                     key={meal}
                     onClick={() => setPicking({ day, meal })}
-                    className="p-1.5 rounded-[6px] text-[11px] mb-1.5 border border-dashed border-[#D0C8BC] text-[#A89E93] text-center cursor-pointer hover:border-[#7A9E7E] hover:text-[#7A9E7E] transition-colors"
+                    style={{
+                      padding: '7px 9px', borderRadius: 6, fontSize: 10, marginBottom: 6,
+                      border: '1px dashed #C8BEB0', color: '#9C9285', textAlign: 'center',
+                      cursor: 'pointer', transition: 'all 0.15s', letterSpacing: '0.5px',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#6B8F71'; (e.currentTarget as HTMLDivElement).style.color = '#3D5C42' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#C8BEB0'; (e.currentTarget as HTMLDivElement).style.color = '#9C9285' }}
                   >
                     + {meal}
                   </div>
@@ -71,16 +87,10 @@ export default function PlannerPage({ toast }: { toast: (m: string) => void }) {
           )
         })}
       </div>
-
-      <p className="text-[11px] text-[#A89E93] mt-3">Click a filled meal to remove it. Click an empty slot to add a recipe.</p>
+      <p style={{ fontSize: 11, color: '#C8BEB0', marginTop: 12, fontFamily: 'var(--font-jost)' }}>Click a filled slot to remove it. Click an empty slot to assign a recipe.</p>
 
       {picking && (
-        <MealPickerModal
-          day={picking.day}
-          meal={picking.meal}
-          onClose={() => setPicking(null)}
-          toast={toast}
-        />
+        <MealPickerModal day={picking.day} meal={picking.meal} onClose={() => setPicking(null)} toast={toast} />
       )}
     </div>
   )

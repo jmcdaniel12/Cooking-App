@@ -2,93 +2,173 @@
 import { useState } from 'react'
 import { useStore } from '@/store'
 import Modal from '../ui/Modal'
-import { X } from 'lucide-react'
 
 const CATEGORIES = ['Produce', 'Meat', 'Seafood', 'Dairy', 'Pantry', 'Frozen', 'From Recipe', 'From Planner', 'Other']
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  border: '1px solid #DDD6C8',
+  borderRadius: 8,
+  padding: '10px 14px',
+  fontSize: 14,
+  fontFamily: 'var(--font-jost)',
+  color: '#1A1714',
+  background: '#FAF7F2',
+  outline: 'none',
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: 10,
+  fontWeight: 500,
+  color: '#9C9285',
+  textTransform: 'uppercase',
+  letterSpacing: '1.5px',
+  marginBottom: 6,
+  fontFamily: 'var(--font-jost)',
+}
 
 export default function GroceryPage({ toast }: { toast: (m: string) => void }) {
   const { grocery, addGroceryItem, removeGroceryItem, toggleGroceryItem, clearCheckedGrocery } = useStore()
   const [showAdd, setShowAdd] = useState(false)
+  const [showShare, setShowShare] = useState(false)
   const [name, setName] = useState('')
   const [qty, setQty] = useState('')
   const [category, setCategory] = useState('Produce')
+  const [shareEmail, setShareEmail] = useState('')
 
   const unchecked = grocery.filter((g) => !g.checked)
   const cats = Array.from(new Set(grocery.map((g) => g.category)))
+
+  // Build plain-text list for sharing
+  function buildListText() {
+    const lines: string[] = ['Grocery List\n']
+    cats.forEach(cat => {
+      const items = grocery.filter(g => g.category === cat && !g.checked)
+      if (items.length === 0) return
+      lines.push(`${cat.toUpperCase()}`)
+      items.forEach(i => lines.push(`  - ${i.name}${i.qty ? '  (' + i.qty + ')' : ''}`))
+      lines.push('')
+    })
+    return lines.join('\n')
+  }
+
+  function handleSendEmail() {
+    const body = encodeURIComponent(buildListText())
+    const to = encodeURIComponent(shareEmail)
+    window.open(`mailto:${to}?subject=Grocery%20List&body=${body}`)
+  }
+
+  function handleSendText() {
+    const body = encodeURIComponent(buildListText())
+    // sms: URI works on mobile; on desktop opens default SMS app if available
+    window.open(`sms:?body=${body}`)
+  }
 
   function handleAdd() {
     if (!name.trim()) { toast('Please enter an item name'); return }
     addGroceryItem({ id: Date.now(), name: name.trim(), qty: qty || '1', category, checked: false })
     setName(''); setQty(''); setCategory('Produce')
     setShowAdd(false)
-    toast('Item added ✓')
+    toast('Item added')
   }
 
-  function handleClear() {
-    clearCheckedGrocery()
-    toast('Cleared done items')
+  const btnBase: React.CSSProperties = {
+    padding: '9px 18px',
+    borderRadius: 8,
+    fontSize: 11,
+    letterSpacing: '1.2px',
+    textTransform: 'uppercase',
+    fontFamily: 'var(--font-jost)',
+    cursor: 'pointer',
   }
 
   return (
-    <div className="p-8 pb-16">
-      <div className="flex justify-between items-center mb-6">
+    <div style={{ padding: '36px 40px 80px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
         <div>
-          <h1 className="font-display text-[28px] font-normal">Grocery List</h1>
-          <p className="text-[#6B6357] text-[13px] mt-1">
-            {unchecked.length} items remaining · {grocery.filter((g) => g.checked).length} done
+          <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 36, fontWeight: 400, margin: 0, color: '#1A1714' }}>Grocery List</h1>
+          <p style={{ color: '#9C9285', fontSize: 13, marginTop: 4, fontFamily: 'var(--font-jost)' }}>
+            {unchecked.length} item{unchecked.length !== 1 ? 's' : ''} remaining
           </p>
         </div>
-        <div className="flex gap-2">
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
-            onClick={handleClear}
-            className="px-3 py-1.5 text-[12px] font-medium border border-[#D0C8BC] text-[#6B6357] rounded-[8px] hover:bg-[#E8E3DB] transition-colors"
+            onClick={() => setShowShare(true)}
+            style={{ ...btnBase, background: 'transparent', border: '1px solid #DDD6C8', color: '#5C5549' }}
+          >
+            Share list
+          </button>
+          <button
+            onClick={() => { clearCheckedGrocery(); toast('Cleared') }}
+            style={{ ...btnBase, background: 'transparent', border: '1px solid #DDD6C8', color: '#5C5549' }}
           >
             Clear done
           </button>
           <button
             onClick={() => setShowAdd(true)}
-            className="flex items-center gap-1.5 bg-[#7A9E7E] text-white text-[13px] font-medium px-4 py-2 rounded-[8px] hover:bg-[#4A6B4E] transition-colors"
+            style={{ ...btnBase, background: '#1A1714', border: 'none', color: '#F5F0E8' }}
           >
-            + Add item
+            Add item
           </button>
         </div>
       </div>
 
       {grocery.length === 0 ? (
-        <div className="text-center py-16 text-[#6B6357]">
-          <div className="text-5xl mb-3">🛒</div>
-          <div className="text-[14px]">Your grocery list is empty</div>
+        <div style={{ textAlign: 'center', padding: '64px 24px', color: '#9C9285' }}>
+          <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 24, marginBottom: 8 }}>Nothing here yet</div>
+          <div style={{ fontSize: 13 }}>Add items manually or generate from a recipe</div>
         </div>
       ) : (
-        <div className="space-y-5">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           {cats.map((cat) => {
             const items = grocery.filter((g) => g.category === cat)
             return (
               <div key={cat}>
-                <div className="text-[11px] font-medium text-[#A89E93] uppercase tracking-[1.5px] mb-3">{cat}</div>
-                <div className="bg-[#FFFEF9] border border-[#E8E3DB] rounded-[18px] px-5 divide-y divide-[#E8E3DB]">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 py-2.5">
-                      <button
+                <div style={{ fontSize: 10, letterSpacing: '2.5px', textTransform: 'uppercase', color: '#9C9285', marginBottom: 10, fontFamily: 'var(--font-jost)' }}>{cat}</div>
+                <div style={{ background: '#FAF7F2', border: '1px solid #DDD6C8', borderRadius: 14 }}>
+                  {items.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '12px 20px',
+                        borderBottom: idx < items.length - 1 ? '1px solid #EDE6D8' : 'none',
+                      }}
+                    >
+                      {/* Custom checkbox */}
+                      <div
                         onClick={() => toggleGroceryItem(item.id)}
-                        className={`w-[18px] h-[18px] flex-shrink-0 rounded-[4px] border flex items-center justify-center transition-all ${
-                          item.checked ? 'bg-[#7A9E7E] border-[#7A9E7E]' : 'border-[#D0C8BC]'
-                        }`}
+                        style={{
+                          width: 17, height: 17, flexShrink: 0,
+                          border: `1.5px solid ${item.checked ? '#6B8F71' : '#C8BEB0'}`,
+                          borderRadius: 4,
+                          background: item.checked ? '#6B8F71' : 'transparent',
+                          cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          transition: 'all 0.15s',
+                        }}
                       >
                         {item.checked && (
-                          <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                            <path d="M1 4l3 3 6-6" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+                          <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+                            <path d="M1 3.5l2.5 2.5 4.5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                         )}
-                      </button>
-                      <span className={`flex-1 text-[13px] ${item.checked ? 'line-through text-[#A89E93]' : ''}`}>{item.name}</span>
-                      <span className="text-[12px] text-[#6B6357]">{item.qty}</span>
+                      </div>
+                      <span style={{
+                        flex: 1, fontSize: 14, color: item.checked ? '#C8BEB0' : '#1A1714',
+                        textDecoration: item.checked ? 'line-through' : 'none',
+                        fontFamily: 'var(--font-jost)',
+                        transition: 'all 0.15s',
+                      }}>
+                        {item.name}
+                      </span>
+                      <span style={{ fontSize: 12, color: '#9C9285', fontFamily: 'var(--font-jost)' }}>{item.qty}</span>
                       <button
                         onClick={() => removeGroceryItem(item.id)}
-                        className="text-[#A89E93] hover:text-[#1C1A15] transition-colors ml-1"
-                      >
-                        <X size={15} />
-                      </button>
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C8BEB0', fontSize: 18, padding: '0 0 0 8px', lineHeight: 1 }}
+                      >×</button>
                     </div>
                   ))}
                 </div>
@@ -98,47 +178,89 @@ export default function GroceryPage({ toast }: { toast: (m: string) => void }) {
         </div>
       )}
 
+      {/* Add item modal */}
       {showAdd && (
-        <Modal title="Add Grocery Item" onClose={() => setShowAdd(false)}>
-          <div className="space-y-4">
+        <Modal title="Add Item" onClose={() => setShowAdd(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Item Name</label>
-              <input
-                className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E]"
-                placeholder="e.g. Olive oil"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                autoFocus
-              />
+              <span style={labelStyle}>Item name</span>
+              <input style={inputStyle} placeholder="e.g. Olive oil" value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdd()} autoFocus />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
-                <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Quantity</label>
-                <input
-                  className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E]"
-                  placeholder="e.g. 1 bottle"
-                  value={qty}
-                  onChange={(e) => setQty(e.target.value)}
-                />
+                <span style={labelStyle}>Quantity</span>
+                <input style={inputStyle} placeholder="e.g. 1 bottle" value={qty} onChange={e => setQty(e.target.value)} />
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Category</label>
-                <select
-                  className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E] bg-white"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                >
-                  {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                <span style={labelStyle}>Category</span>
+                <select style={{ ...inputStyle }} value={category} onChange={e => setCategory(e.target.value)}>
+                  {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
             </div>
             <button
               onClick={handleAdd}
-              className="w-full bg-[#7A9E7E] text-white font-medium py-2.5 rounded-[8px] hover:bg-[#4A6B4E] transition-colors text-[13px]"
+              style={{ width: '100%', background: '#1A1714', color: '#F5F0E8', border: 'none', borderRadius: 8, padding: '13px', fontSize: 11, letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'var(--font-jost)', cursor: 'pointer', marginTop: 4 }}
             >
-              Add to List
+              Add to list
             </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Share modal */}
+      {showShare && (
+        <Modal title="Share Grocery List" onClose={() => setShowShare(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+            {/* Preview */}
+            <div>
+              <span style={labelStyle}>List preview</span>
+              <div style={{ background: '#EDE6D8', borderRadius: 8, padding: '14px 16px', maxHeight: 200, overflowY: 'auto' }}>
+                <pre style={{ fontSize: 12, color: '#5C5549', fontFamily: 'var(--font-jost)', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>
+                  {buildListText()}
+                </pre>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div style={{ borderTop: '1px solid #DDD6C8' }} />
+
+            {/* Email */}
+            <div>
+              <span style={labelStyle}>Send via email</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  style={{ ...inputStyle, flex: 1 }}
+                  type="email"
+                  placeholder="you@example.com"
+                  value={shareEmail}
+                  onChange={e => setShareEmail(e.target.value)}
+                />
+                <button
+                  onClick={handleSendEmail}
+                  style={{ ...btnBase, background: '#1A1714', color: '#F5F0E8', border: 'none', whiteSpace: 'nowrap' }}
+                >
+                  Open in Mail
+                </button>
+              </div>
+              <div style={{ fontSize: 11, color: '#C8BEB0', marginTop: 6 }}>Opens your default mail app with the list pre-filled</div>
+            </div>
+
+            {/* Divider */}
+            <div style={{ borderTop: '1px solid #DDD6C8' }} />
+
+            {/* Text */}
+            <div>
+              <span style={labelStyle}>Send via text message</span>
+              <button
+                onClick={handleSendText}
+                style={{ ...btnBase, background: 'transparent', border: '1px solid #DDD6C8', color: '#5C5549', width: '100%', justifyContent: 'center' }}
+              >
+                Open in Messages
+              </button>
+              <div style={{ fontSize: 11, color: '#C8BEB0', marginTop: 6 }}>Opens your SMS app with the list pre-filled — best on mobile</div>
+            </div>
           </div>
         </Modal>
       )}

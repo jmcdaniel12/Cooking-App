@@ -1,65 +1,111 @@
 'use client'
 import { useStore } from '@/store'
-import { Sun, CalendarDays, BookOpen, ShoppingCart, Package, Refrigerator } from 'lucide-react'
 import clsx from 'clsx'
 
 const NAV = [
-  { id: 'inspire', label: 'Inspire Me', icon: Sun },
-  { id: 'planner', label: 'Week Planner', icon: CalendarDays },
-  { id: 'recipes', label: 'Recipes', icon: BookOpen },
-  { id: 'grocery', label: 'Grocery List', icon: ShoppingCart },
+  { id: 'inspire',   label: 'Inspire Me'    },
+  { id: 'planner',  label: 'Week Planner'  },
+  { id: 'recipes',  label: 'Recipes'       },
+  { id: 'grocery',  label: 'Grocery List'  },
 ]
 
 const NAV2 = [
-  { id: 'pantry', label: 'Pantry', icon: Package },
-  { id: 'leftovers', label: 'Leftovers', icon: Refrigerator },
+  { id: 'pantry',    label: 'Pantry'     },
+  { id: 'leftovers', label: 'Leftovers'  },
 ]
 
 export default function Sidebar() {
   const { currentPage, setPage } = useStore()
 
   return (
-    <aside className="w-[200px] min-w-[200px] bg-[#1C1A15] flex flex-col overflow-y-auto">
-      <div className="px-5 pt-6 pb-5 border-b border-white/10">
-        <div className="font-display text-[#FAF8F3] text-[20px] italic">Mise en Place</div>
-        <div className="text-[10px] text-white/35 tracking-[2px] uppercase mt-0.5">Meal Planner</div>
+    <aside
+      style={{
+        width: 210,
+        minWidth: 210,
+        background: '#1A1714',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+        position: 'relative',
+        zIndex: 10,
+      }}
+    >
+      {/* Logo */}
+      <div style={{ padding: '28px 24px 22px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 22, color: '#F5F0E8', fontStyle: 'italic', letterSpacing: 0.5, lineHeight: 1.1 }}>
+          Mise en Place
+        </div>
+        <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)', letterSpacing: '3px', textTransform: 'uppercase', marginTop: 5 }}>
+          Meal Planner
+        </div>
       </div>
 
-      <nav className="py-3 flex-1">
-        {NAV.map(({ id, label, icon: Icon }) => (
+      {/* Nav */}
+      <nav style={{ padding: '10px 0', flex: 1 }}>
+        {NAV.map(({ id, label }) => (
           <button
             key={id}
             onClick={() => setPage(id)}
-            className={clsx(
-              'w-full flex items-center gap-2.5 px-5 py-[11px] text-[13px] text-left transition-all border-l-2',
-              currentPage === id
-                ? 'text-[#FAF8F3] border-l-[#7A9E7E] bg-[#7A9E7E]/12'
-                : 'text-white/50 border-l-transparent hover:text-white/85 hover:bg-white/4'
-            )}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '10px 24px',
+              fontSize: 12,
+              fontFamily: 'var(--font-jost)',
+              fontWeight: 400,
+              letterSpacing: '0.8px',
+              textTransform: 'uppercase',
+              textAlign: 'left',
+              border: 'none',
+              borderLeft: `2px solid ${currentPage === id ? '#6B8F71' : 'transparent'}`,
+              background: currentPage === id ? 'rgba(107,143,113,0.1)' : 'transparent',
+              color: currentPage === id ? '#F5F0E8' : 'rgba(255,255,255,0.4)',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
           >
-            <Icon size={15} className="flex-shrink-0" strokeWidth={1.5} />
             {label}
           </button>
         ))}
 
-        <div className="px-5 pt-4 pb-1.5 text-[9px] tracking-[2px] uppercase text-white/20">Kitchen</div>
+        <div style={{ padding: '18px 24px 6px', fontSize: 9, letterSpacing: '2.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.18)' }}>
+          Kitchen
+        </div>
 
-        {NAV2.map(({ id, label, icon: Icon }) => (
+        {NAV2.map(({ id, label }) => (
           <button
             key={id}
             onClick={() => setPage(id)}
-            className={clsx(
-              'w-full flex items-center gap-2.5 px-5 py-[11px] text-[13px] text-left transition-all border-l-2',
-              currentPage === id
-                ? 'text-[#FAF8F3] border-l-[#7A9E7E] bg-[#7A9E7E]/12'
-                : 'text-white/50 border-l-transparent hover:text-white/85 hover:bg-white/4'
-            )}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '10px 24px',
+              fontSize: 12,
+              fontFamily: 'var(--font-jost)',
+              fontWeight: 400,
+              letterSpacing: '0.8px',
+              textTransform: 'uppercase',
+              textAlign: 'left',
+              border: 'none',
+              borderLeft: `2px solid ${currentPage === id ? '#6B8F71' : 'transparent'}`,
+              background: currentPage === id ? 'rgba(107,143,113,0.1)' : 'transparent',
+              color: currentPage === id ? '#F5F0E8' : 'rgba(255,255,255,0.4)',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
           >
-            <Icon size={15} className="flex-shrink-0" strokeWidth={1.5} />
             {label}
           </button>
         ))}
       </nav>
+
+      {/* Bottom mark */}
+      <div style={{ padding: '18px 24px', borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: 9, color: 'rgba(255,255,255,0.15)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+        © 2025 Mise en Place
+      </div>
     </aside>
   )
 }

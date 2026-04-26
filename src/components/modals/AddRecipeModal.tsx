@@ -3,10 +3,33 @@ import { useState, useRef } from 'react'
 import { useStore } from '@/store'
 import Modal from '../ui/Modal'
 
+const field: React.CSSProperties = {
+  width: '100%',
+  border: '1px solid #DDD6C8',
+  borderRadius: 8,
+  padding: '10px 14px',
+  fontSize: 14,
+  fontFamily: 'var(--font-jost)',
+  color: '#1A1714',
+  background: '#FAF7F2',
+  outline: 'none',
+  transition: 'border-color 0.15s',
+}
+
+const label: React.CSSProperties = {
+  display: 'block',
+  fontSize: 10,
+  fontWeight: 500,
+  color: '#9C9285',
+  textTransform: 'uppercase',
+  letterSpacing: '1.5px',
+  marginBottom: 6,
+  fontFamily: 'var(--font-jost)',
+}
+
 export default function AddRecipeModal({ onClose, toast }: { onClose: () => void; toast: (m: string) => void }) {
   const { addRecipe } = useStore()
   const [name, setName] = useState('')
-  const [emoji, setEmoji] = useState('🍽️')
   const [cuisine, setCuisine] = useState('')
   const [time, setTime] = useState('30')
   const [servings, setServings] = useState('4')
@@ -15,14 +38,25 @@ export default function AddRecipeModal({ onClose, toast }: { onClose: () => void
   const [steps, setSteps] = useState('')
   const [notes, setNotes] = useState('')
   const [photo, setPhoto] = useState<string | null>(null)
+  const [dragging, setDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  function handleFile(file: File) {
     const reader = new FileReader()
     reader.onload = (ev) => setPhoto(ev.target?.result as string)
     reader.readAsDataURL(file)
+  }
+
+  function handlePhotoInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) handleFile(file)
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/')) handleFile(file)
   }
 
   function handleSave() {
@@ -30,7 +64,7 @@ export default function AddRecipeModal({ onClose, toast }: { onClose: () => void
     addRecipe({
       id: Date.now(),
       name: name.trim(),
-      emoji,
+      emoji: '—',
       cuisine: cuisine || 'Other',
       time: parseInt(time) || 30,
       servings: parseInt(servings) || 4,
@@ -40,134 +74,120 @@ export default function AddRecipeModal({ onClose, toast }: { onClose: () => void
       notes,
       photo,
     })
-    toast('Recipe saved! ✓')
+    toast('Recipe saved')
     onClose()
   }
 
   return (
-    <Modal title="Add New Recipe" onClose={onClose}>
-      <div className="space-y-4">
+    <Modal title="New Recipe" onClose={onClose}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+        {/* Photo upload */}
         <div>
-          <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Recipe Name</label>
-          <input
-            className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E]"
-            placeholder="e.g. Lemon Garlic Shrimp"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoFocus
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Emoji</label>
-            <input
-              className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[22px] focus:outline-none focus:border-[#7A9E7E]"
-              value={emoji}
-              onChange={(e) => setEmoji(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Cuisine</label>
-            <input
-              className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E]"
-              placeholder="e.g. Italian"
-              value={cuisine}
-              onChange={(e) => setCuisine(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Cook Time (mins)</label>
-            <input
-              type="number"
-              className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E]"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Servings</label>
-            <input
-              type="number"
-              className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E]"
-              value={servings}
-              onChange={(e) => setServings(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Tags (comma separated)</label>
-          <input
-            className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E]"
-            placeholder="dinner, quick, vegetarian"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Ingredients (one per line)</label>
-          <textarea
-            rows={4}
-            className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E] resize-none"
-            placeholder={'chicken, 2 lbs\ngarlic, 3 cloves\nlemon, 1'}
-            value={ingredients}
-            onChange={(e) => setIngredients(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Steps (one per line)</label>
-          <textarea
-            rows={4}
-            className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E] resize-none"
-            placeholder={'Preheat oven to 400°F\nSeason the chicken\nBake 35 minutes'}
-            value={steps}
-            onChange={(e) => setSteps(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Notes</label>
-          <input
-            className="w-full border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E]"
-            placeholder="Tips, variations, pairings..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-[12px] font-medium text-[#6B6357] uppercase tracking-[0.5px] mb-1.5">Photo (optional)</label>
+          <span style={label}>Photo</span>
           {photo ? (
-            <div className="relative">
-              <img src={photo} alt="preview" className="w-full h-40 object-cover rounded-[8px]" />
+            <div style={{ position: 'relative' }}>
+              <img src={photo} alt="preview" style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 10, display: 'block' }} />
               <button
                 onClick={() => setPhoto(null)}
-                className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-6 h-6 flex items-center justify-center text-[12px] hover:bg-black/70"
-              >
-                ×
-              </button>
+                style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(26,23,20,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >×</button>
             </div>
           ) : (
             <div
               onClick={() => fileRef.current?.click()}
-              className="border-2 border-dashed border-[#D0C8BC] rounded-[8px] p-6 text-center cursor-pointer hover:border-[#7A9E7E] hover:bg-[#EDF3EE] transition-colors"
+              onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={handleDrop}
+              style={{
+                border: `2px dashed ${dragging ? '#6B8F71' : '#C8BEB0'}`,
+                borderRadius: 10,
+                padding: '32px 24px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                background: dragging ? '#E8EFE9' : '#EDE6D8',
+                transition: 'all 0.15s',
+              }}
             >
-              <div className="text-3xl mb-2">📷</div>
-              <div className="text-[13px] text-[#6B6357]">Click to upload a photo</div>
+              <div style={{ fontSize: 11, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#9C9285', marginBottom: 6 }}>
+                Drop image here or click to upload
+              </div>
+              <div style={{ fontSize: 11, color: '#C8BEB0' }}>JPG, PNG, WEBP</div>
             </div>
           )}
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoInput} />
+        </div>
+
+        <div>
+          <span style={label}>Recipe Name</span>
+          <input style={field} placeholder="e.g. Lemon Garlic Chicken" value={name} onChange={e => setName(e.target.value)} autoFocus />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <span style={label}>Cuisine</span>
+            <input style={field} placeholder="e.g. Italian" value={cuisine} onChange={e => setCuisine(e.target.value)} />
+          </div>
+          <div>
+            <span style={label}>Tags (comma separated)</span>
+            <input style={field} placeholder="dinner, quick" value={tags} onChange={e => setTags(e.target.value)} />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <span style={label}>Cook time (minutes)</span>
+            <input type="number" style={field} value={time} onChange={e => setTime(e.target.value)} />
+          </div>
+          <div>
+            <span style={label}>Servings</span>
+            <input type="number" style={field} value={servings} onChange={e => setServings(e.target.value)} />
+          </div>
+        </div>
+
+        <div>
+          <span style={label}>Ingredients (one per line, e.g. "chicken, 2 lbs")</span>
+          <textarea
+            rows={5}
+            style={{ ...field, resize: 'none' }}
+            placeholder={'chicken thighs, 4\ngarlic, 3 cloves\nlemon, 1'}
+            value={ingredients}
+            onChange={e => setIngredients(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <span style={label}>Steps (one per line)</span>
+          <textarea
+            rows={5}
+            style={{ ...field, resize: 'none' }}
+            placeholder={'Preheat oven to 400°F\nSeason chicken with salt and pepper\nRoast 40 minutes until golden'}
+            value={steps}
+            onChange={e => setSteps(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <span style={label}>Notes</span>
+          <input style={field} placeholder="Tips, pairings, variations..." value={notes} onChange={e => setNotes(e.target.value)} />
         </div>
 
         <button
           onClick={handleSave}
-          className="w-full bg-[#7A9E7E] text-white font-medium py-3 rounded-[8px] hover:bg-[#4A6B4E] transition-colors text-[13px]"
+          style={{
+            width: '100%',
+            background: '#1A1714',
+            color: '#F5F0E8',
+            border: 'none',
+            borderRadius: 8,
+            padding: '13px',
+            fontSize: 12,
+            letterSpacing: '1.5px',
+            textTransform: 'uppercase',
+            fontFamily: 'var(--font-jost)',
+            cursor: 'pointer',
+            marginTop: 4,
+          }}
         >
           Save Recipe
         </button>

@@ -2,84 +2,69 @@
 import { useState } from 'react'
 import { useStore, Day, MealType } from '@/store'
 import Modal from '../ui/Modal'
-import { Clock } from 'lucide-react'
 
-interface Props {
-  day: Day
-  meal: MealType
-  onClose: () => void
-  toast: (m: string) => void
-}
+interface Props { day: Day; meal: MealType; onClose: () => void; toast: (m: string) => void }
 
 export default function MealPickerModal({ day, meal, onClose, toast }: Props) {
   const { recipes, assignMeal, addRecipe } = useStore()
-  const [mealOutName, setMealOutName] = useState('')
+  const [mealOut, setMealOut] = useState('')
 
   function handlePick(recipeId: number) {
     assignMeal(day, meal, recipeId)
-    toast('Meal added ✓')
+    toast('Meal added')
     onClose()
   }
 
   function handleMealOut() {
-    if (!mealOutName.trim()) return
-    const newR = {
-      id: Date.now(),
-      name: mealOutName.trim(),
-      emoji: '🍽️',
-      cuisine: 'Restaurant',
-      time: 0,
-      servings: 2,
-      tags: ['meal-out'],
-      ingredients: [],
-      steps: [],
-      photo: null,
-      notes: '',
-    }
+    if (!mealOut.trim()) return
+    const newR = { id: Date.now(), name: mealOut.trim(), emoji: '—', cuisine: 'Restaurant', time: 0, servings: 2, tags: ['meal-out'], ingredients: [], steps: [], photo: null, notes: '' }
     addRecipe(newR)
     assignMeal(day, meal, newR.id)
-    toast('Meal out added ✓')
+    toast('Meal out added')
     onClose()
   }
 
   return (
     <Modal title={`${day} — ${meal}`} onClose={onClose}>
-      <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1 mb-4">
-        {recipes.map((r) => (
+      <div style={{ maxHeight: '50vh', overflowY: 'auto', marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {recipes.map(r => (
           <div
             key={r.id}
             onClick={() => handlePick(r.id)}
-            className="flex items-center gap-3 p-3 border border-[#E8E3DB] rounded-[8px] cursor-pointer hover:border-[#7A9E7E] hover:bg-[#EDF3EE]/40 transition-all"
+            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', border: '1px solid #DDD6C8', borderRadius: 8, cursor: 'pointer', transition: 'all 0.14s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#6B8F71'; (e.currentTarget as HTMLDivElement).style.background = '#F0F5F1' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#DDD6C8'; (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
           >
-            <span className="text-3xl">{r.emoji}</span>
-            <div className="flex-1">
-              <div className="font-medium text-[14px]">{r.name}</div>
-              <div className="text-[11px] text-[#6B6357] flex items-center gap-1 mt-0.5">
-                <Clock size={10} /> {r.time}min · {r.cuisine}
-              </div>
+            {r.photo
+              ? <img src={r.photo} alt={r.name} style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+              : <div style={{ width: 40, height: 40, borderRadius: 6, background: '#EDE6D8', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#9C9285', textTransform: 'uppercase', letterSpacing: '1px' }}>{r.cuisine.slice(0, 3)}</div>
+            }
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 16, color: '#1A1714' }}>{r.name}</div>
+              <div style={{ fontSize: 11, color: '#9C9285', marginTop: 1 }}>{r.time > 0 ? `${r.time} min · ` : ''}{r.cuisine}</div>
             </div>
-            <div className="flex gap-1.5 flex-wrap justify-end">
-              {r.tags.slice(0, 2).map((t) => (
-                <span key={t} className="text-[11px] bg-[#EDF3EE] text-[#4A6B4E] px-2 py-0.5 rounded-full">{t}</span>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {r.tags.slice(0, 2).map(t => (
+                <span key={t} style={{ fontSize: 10, background: '#E8EFE9', color: '#3D5C42', padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t}</span>
               ))}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="border-t border-[#E8E3DB] pt-4">
-        <div className="text-[11px] font-medium text-[#A89E93] uppercase tracking-[1.5px] mb-2">Or log a meal out</div>
-        <div className="flex gap-2">
+      <div style={{ borderTop: '1px solid #DDD6C8', paddingTop: 18 }}>
+        <div style={{ fontSize: 10, letterSpacing: '2px', textTransform: 'uppercase', color: '#9C9285', marginBottom: 10, fontFamily: 'var(--font-jost)' }}>Or log a meal out</div>
+        <div style={{ display: 'flex', gap: 8 }}>
           <input
-            className="flex-1 border border-[#D0C8BC] rounded-[8px] px-3 py-2 text-[14px] focus:outline-none focus:border-[#7A9E7E]"
+            style={{ flex: 1, border: '1px solid #DDD6C8', borderRadius: 8, padding: '10px 14px', fontSize: 14, fontFamily: 'var(--font-jost)', color: '#1A1714', background: '#FAF7F2', outline: 'none' }}
             placeholder="Restaurant or meal name"
-            value={mealOutName}
-            onChange={(e) => setMealOutName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleMealOut()}
+            value={mealOut}
+            onChange={e => setMealOut(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleMealOut()}
           />
           <button
             onClick={handleMealOut}
-            className="px-4 py-2 border border-[#D0C8BC] text-[#6B6357] text-[13px] rounded-[8px] hover:bg-[#E8E3DB] transition-colors"
+            style={{ padding: '10px 18px', background: 'transparent', border: '1px solid #DDD6C8', color: '#5C5549', borderRadius: 8, fontSize: 11, letterSpacing: '1px', textTransform: 'uppercase', fontFamily: 'var(--font-jost)', cursor: 'pointer' }}
           >
             Add
           </button>
